@@ -198,7 +198,7 @@ class AudioDecoder private constructor(private val context: Context) {
     interface DecodeListener {
         fun onStartDecode(duration: Long, channelsCount: Int, sampleRate: Int)
         fun onFinishDecode(data: IntArray, duration: Long)
-        fun onError(exception: Exception?)
+        fun onError(exception: Exception)
     }
 
     private fun calculateSamplesPerFrame(): Int {

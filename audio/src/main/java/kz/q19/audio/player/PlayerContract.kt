@@ -18,7 +18,7 @@
 
 package kz.q19.audio.player
 
-import kz.q19.domain.error.BaseException
+import kz.q19.common.error.BaseException
 
 interface PlayerContract {
     interface PlayerCallback {
@@ -28,7 +28,7 @@ interface PlayerContract {
         fun onStopPlay()
         fun onPausePlay()
         fun onSeek(mills: Long)
-        fun onError(throwable: BaseException?)
+        fun onError(throwable: BaseException)
     }
 
     interface Player {

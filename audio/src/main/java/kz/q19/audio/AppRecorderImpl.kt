@@ -22,7 +22,8 @@ import kz.q19.audio.AudioDecoder.DecodeListener
 import kz.q19.audio.model.Record
 import kz.q19.audio.recorder.RecorderContract
 import kz.q19.audio.recorder.RecorderContract.RecorderCallback
-import kz.q19.domain.error.BaseException
+import kz.q19.common.error.BaseException
+import kz.q19.common.preferences.PreferencesProvider
 import kz.q19.utils.IntArrayList
 import java.io.File
 import java.util.*
@@ -34,43 +35,37 @@ class AppRecorderImpl private constructor(
     private val context: Context,
     private val uiHandler: Handler,
     private val localRepository: LocalRepository,
-    private val preferences: Preferences,
+    private val preferencesProvider: PreferencesProvider,
     private val recordingsTasks: BackgroundQueue,
     private val processingTasks: BackgroundQueue,
-) : AudioRecorder {
+) : AppAudioRecorder {
 
     companion object {
         private const val TAG = "AppRecorderImpl"
 
         @Volatile
-        private var instance: AppRecorderImpl? = null
+        private var INSTANCE: AppRecorderImpl? = null
 
         fun getInstance(
             recorder: RecorderContract.Recorder,
             context: Context,
             uiHandler: Handler,
             localRepository: LocalRepository,
-            preferences: Preferences,
+            preferencesProvider: PreferencesProvider,
             tasks: BackgroundQueue,
-            processingTasks: BackgroundQueue,
-        ): AppRecorderImpl {
-            if (instance == null) {
-                synchronized(AppRecorderImpl::class.java) {
-                    if (instance == null) {
-                        instance = AppRecorderImpl(
-                            recorder,
-                            context,
-                            uiHandler,
-                            localRepository,
-                            preferences,
-                            tasks,
-                            processingTasks
-                        )
-                    }
-                }
+            processingTasks: BackgroundQueue
+        ): AppRecorderImpl =
+            INSTANCE ?: synchronized(this) {
+                INSTANCE ?: AppRecorderImpl(
+                    audioRecorder = recorder,
+                    context = context,
+                    uiHandler = uiHandler,
+                    localRepository = localRepository,
+                    preferencesProvider = preferencesProvider,
+                    recordingsTasks = tasks,
+                    processingTasks = processingTasks
+                ).also { INSTANCE = it }
             }
-            return instance!!
-        }
     }
 
     private val recorderCallback: RecorderCallback
@@ -124,10 +119,13 @@ class AppRecorderImpl private constructor(
 
                     recordingDuration = 0
 
-                    val waveForm = convertRecordingData(recordingData,
-                        (duration / 1000000F).toInt())
+                    val waveForm = convertRecordingData(
+                        recordingData,
+                        (duration / 1000000F).toInt()
+                    )
 
-                    val activeRecord = localRepository.getRecord(preferences.getActiveRecord())
+                    val activeRecord =
+                        localRepository.getRecord(preferencesProvider.getActiveAudioRecordId())
 
                     if (activeRecord != null) {
                         val update = Record(
@@ -167,7 +165,7 @@ class AppRecorderImpl private constructor(
                 onRecordingError(throwable)
             }
         }
-        audioRecorder?.setRecorderCallback(recorderCallback)
+        audioRecorder.setRecorderCallback(recorderCallback)
     }
 
     private fun convertRecordingData(list: IntArrayList, durationSec: Int): IntArray {
@@ -245,7 +243,7 @@ class AppRecorderImpl private constructor(
                         runOnUIThread { onRecordFinishProcessing() }
                     }
 
-                    override fun onError(exception: Exception?) {
+                    override fun onError(exception: Exception) {
                         isProcessing = false
                     }
                 })
@@ -378,5 +376,5 @@ class AppRecorderImpl private constructor(
             }
         }
     }
-    
+
 }

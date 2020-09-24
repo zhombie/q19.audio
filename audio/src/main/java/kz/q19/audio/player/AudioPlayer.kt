@@ -18,6 +18,7 @@
 
 package kz.q19.audio.player
 
+import ReadPermissionDeniedException
 import android.media.AudioAttributes
 import android.media.MediaPlayer
 import android.media.MediaPlayer.OnPreparedListener
@@ -26,8 +27,7 @@ import kz.q19.audio.Constants
 import kz.q19.audio.error.AudioPlayerDataSourceException
 import kz.q19.audio.player.PlayerContract.Player
 import kz.q19.audio.player.PlayerContract.PlayerCallback
-import kz.q19.domain.error.BaseException
-import kz.q19.domain.error.ReadPermissionDeniedException
+import kz.q19.common.error.BaseException
 import java.io.IOException
 import java.util.*
 
@@ -36,12 +36,13 @@ class AudioPlayer private constructor() : Player, OnPreparedListener {
     companion object {
         private const val TAG = "AudioPlayer"
 
-        val instance: AudioPlayer
-            get() = SingletonHolder.singleton
-    }
+        @Volatile
+        private var INSTANCE: AudioPlayer? = null
 
-    private object SingletonHolder {
-        val singleton = AudioPlayer()
+        fun getInstance(): AudioPlayer =
+            INSTANCE ?: synchronized(this) {
+                INSTANCE ?: AudioPlayer().also { INSTANCE = it }
+            }
     }
 
     private val actionsListeners: MutableList<PlayerCallback> = ArrayList()
@@ -159,7 +160,7 @@ class AudioPlayer private constructor() : Player, OnPreparedListener {
                         timerProgress?.schedule(object : TimerTask() {
                             override fun run() {
                                 try {
-                                    if (mediaPlayer != null && mediaPlayer?.isPlaying == true) {
+                                    if (mediaPlayer?.isPlaying == true) {
                                         val curPos = mediaPlayer?.currentPosition ?: 0
                                         onPlayProgress(curPos.toLong())
                                     }
@@ -213,7 +214,7 @@ class AudioPlayer private constructor() : Player, OnPreparedListener {
             pausePos = mills
         }
         try {
-            if (mediaPlayer != null && mediaPlayer?.isPlaying == true) {
+            if (mediaPlayer?.isPlaying == true) {
                 mediaPlayer?.seekTo(pauseTime.toInt())
                 onSeek(pauseTime)
             }

@@ -1,7 +1,6 @@
 package kz.q19.audio
 
 import android.content.Context
-import android.os.Build
 import android.os.Environment
 import android.os.StatFs
 import android.util.Log
@@ -18,7 +17,6 @@ internal object Utils {
         val screenWidthDp = AndroidUtils.pxToDp(AndroidUtils.getScreenWidth(context))
         return (Constants.WAVEFORM_WIDTH * screenWidthDp).toInt()
     }
-
 
     fun isSupportedExtension(extension: String?): Boolean {
         for (i in Constants.SUPPORTED_EXT.indices) {
@@ -95,8 +93,7 @@ internal object Utils {
                         Log.d(TAG, "Dirs are successfully created")
                         return dir
                     } else {
-                        Log.e(TAG,
-                            "Dirs are NOT created! Please check permission write to external storage!")
+                        Log.e(TAG, "Dirs are NOT created! Please check permission write to external storage!")
                     }
                 } catch (e: Exception) {
                     Log.e(TAG, e.toString())

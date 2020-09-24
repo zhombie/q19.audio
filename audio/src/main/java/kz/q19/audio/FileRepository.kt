@@ -15,16 +15,15 @@
  */
 package kz.q19.audio
 
-import android.content.Context
-import kz.q19.domain.error.CannotCreateFileException
+import kz.q19.common.error.CannotCreateFileException
 import java.io.File
 
 interface FileRepository {
     @Throws(CannotCreateFileException::class)
-    fun provideRecordFile(): File?
+    fun provideRecordFile(): File
 
     @Throws(CannotCreateFileException::class)
-    fun provideRecordFile(name: String): File?
+    fun provideRecordFile(name: String): File
 
     val recordingDir: File?
 

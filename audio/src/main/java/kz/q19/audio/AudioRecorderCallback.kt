@@ -1,7 +1,7 @@
 package kz.q19.audio
 
 import kz.q19.audio.model.Record
-import kz.q19.domain.error.BaseException
+import kz.q19.common.error.BaseException
 import java.io.File
 
 interface AudioRecorderCallback {

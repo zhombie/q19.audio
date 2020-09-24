@@ -4,7 +4,7 @@ import kz.q19.audio.model.Record
 import kz.q19.audio.recorder.RecorderContract
 import kz.q19.utils.IntArrayList
 
-interface AudioRecorder {
+interface AppAudioRecorder {
     fun addRecordingCallback(callback: AudioRecorderCallback)
     fun removeRecordingCallback(callback: AudioRecorderCallback)
     fun setRecorder(recorder: RecorderContract.Recorder)

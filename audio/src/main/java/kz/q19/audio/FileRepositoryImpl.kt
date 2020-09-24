@@ -17,12 +17,7 @@ package kz.q19.audio
 
 import android.content.Context
 import android.util.Log
-import kz.q19.audio.Utils.addExtension
-import kz.q19.audio.Utils.createFile
-import kz.q19.audio.Utils.generateRecordNameMills
-import kz.q19.audio.Utils.getAvailableInternalMemorySize
-import kz.q19.audio.Utils.getPrivateRecordsDir
-import kz.q19.domain.error.CannotCreateFileException
+import kz.q19.common.error.CannotCreateFileException
 import kz.q19.utils.file.Extension
 import kz.q19.utils.file.FileUtils.deleteFile
 import java.io.File
@@ -36,17 +31,12 @@ class FileRepositoryImpl private constructor(
         private const val TAG = "FileRepositoryImpl"
 
         @Volatile
-        private var instance: FileRepositoryImpl? = null
+        private var INSTANCE: FileRepositoryImpl? = null
 
-        fun getInstance(context: Context): FileRepositoryImpl? {
-            if (instance == null) {
-                synchronized(FileRepositoryImpl::class.java) {
-                    if (instance == null) {
-                        instance = FileRepositoryImpl(context)
-                    }
-                }
+        fun getInstance(context: Context): FileRepositoryImpl {
+            return INSTANCE ?: synchronized(this) {
+                INSTANCE ?: FileRepositoryImpl(context).also { INSTANCE = it }
             }
-            return instance
         }
     }
 
@@ -59,29 +49,23 @@ class FileRepositoryImpl private constructor(
 
     private fun updateRecordingDir() {
         try {
-            recordingDir = getPrivateRecordsDir(context)
+            recordingDir = Utils.getPrivateRecordsDir(context)
         } catch (e: FileNotFoundException) {
             Log.e(TAG, e.toString())
         }
     }
 
     @Throws(CannotCreateFileException::class)
-    override fun provideRecordFile(): File? {
-        val recordName = generateRecordNameMills()
-        val recordFile = createFile(recordingDir, addExtension(recordName, Extension.M4A.value))
-        if (recordFile != null) {
-            return recordFile
-        }
-        throw CannotCreateFileException()
+    override fun provideRecordFile(): File {
+        val recordName = Utils.generateRecordNameMills()
+        val recordFile = Utils.createFile(recordingDir, Utils.addExtension(recordName, Extension.M4A.value))
+        return recordFile ?: throw CannotCreateFileException()
     }
 
     @Throws(CannotCreateFileException::class)
-    override fun provideRecordFile(name: String): File? {
-        val recordFile = createFile(recordingDir, name)
-        if (recordFile != null) {
-            return recordFile
-        }
-        throw CannotCreateFileException()
+    override fun provideRecordFile(name: String): File {
+        val recordFile = Utils.createFile(recordingDir, name)
+        return recordFile ?: throw CannotCreateFileException()
     }
 
     override fun deleteRecordFile(path: String?): Boolean {
@@ -92,7 +76,7 @@ class FileRepositoryImpl private constructor(
 
     @Throws(IllegalArgumentException::class)
     override fun hasAvailableSpace(): Boolean {
-        val space = getAvailableInternalMemorySize(context)
+        val space = Utils.getAvailableInternalMemorySize(context)
         val time = spaceToTimeSecs(space)
         return time > Constants.MIN_REMAIN_RECORDING_TIME
     }

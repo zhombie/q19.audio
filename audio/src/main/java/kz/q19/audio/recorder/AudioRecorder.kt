@@ -18,13 +18,13 @@
 
 package kz.q19.audio.recorder
 
+import InvalidOutputFileException
 import android.media.MediaRecorder
 import android.os.Build
 import android.util.Log
 import kz.q19.audio.Constants
 import kz.q19.audio.error.AudioRecorderInitException
 import kz.q19.audio.recorder.RecorderContract.RecorderCallback
-import kz.q19.domain.error.InvalidOutputFileException
 import java.io.File
 import java.io.IOException
 import java.util.*
@@ -34,12 +34,13 @@ class AudioRecorder private constructor() : RecorderContract.Recorder {
     companion object {
         private const val TAG = "AudioRecorder"
 
-        val instance: AudioRecorder
-            get() = RecorderSingletonHolder.singleton
-    }
+        @Volatile
+        private var INSTANCE: AudioRecorder? = null
 
-    private object RecorderSingletonHolder {
-        val singleton = AudioRecorder()
+        fun getInstance(): AudioRecorder =
+            INSTANCE ?: synchronized(this) {
+                INSTANCE ?: AudioRecorder().also { INSTANCE = it }
+            }
     }
 
     private var recorder: MediaRecorder? = null
@@ -126,7 +127,7 @@ class AudioRecorder private constructor() : RecorderContract.Recorder {
                     isPaused = true
                 } catch (e: IllegalStateException) {
                     Log.e(TAG, "$e. pauseRecording() failed")
-                    //TODO: Fix exception
+                    // TODO: Fix exception
                     recorderCallback?.onError(AudioRecorderInitException())
                 }
             } else {

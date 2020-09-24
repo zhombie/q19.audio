@@ -30,17 +30,12 @@ class LocalRepositoryImpl private constructor(
         private const val TAG = "LocalRepositoryImpl"
 
         @Volatile
-        private var instance: LocalRepositoryImpl? = null
+        private var INSTANCE: LocalRepositoryImpl? = null
 
         fun getInstance(context: Context): LocalRepositoryImpl {
-            if (instance == null) {
-                synchronized(LocalRepositoryImpl::class.java) {
-                    if (instance == null) {
-                        instance = LocalRepositoryImpl(context)
-                    }
-                }
+            return INSTANCE ?: synchronized(this) {
+                INSTANCE ?: LocalRepositoryImpl(context).also { INSTANCE = it }
             }
-            return instance!!
         }
     }
 

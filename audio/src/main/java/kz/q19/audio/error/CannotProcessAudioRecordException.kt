@@ -3,7 +3,7 @@
 package kz.q19.audio.error
 
 import kz.q19.audio.R
-import kz.q19.domain.error.BaseException
+import kz.q19.common.error.BaseException
 
 class CannotProcessAudioRecordException : BaseException() {
     override val text: Int
