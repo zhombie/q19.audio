@@ -30,7 +30,7 @@ import java.util.*
 import kotlin.math.ceil
 import kotlin.math.floor
 
-class AppRecorderImpl private constructor(
+class AppAudioRecorderImpl private constructor(
     private var audioRecorder: RecorderContract.Recorder,
     private val context: Context,
     private val uiHandler: Handler,
@@ -44,7 +44,7 @@ class AppRecorderImpl private constructor(
         private const val TAG = "AppRecorderImpl"
 
         @Volatile
-        private var INSTANCE: AppRecorderImpl? = null
+        private var INSTANCE: AppAudioRecorderImpl? = null
 
         fun getInstance(
             recorder: RecorderContract.Recorder,
@@ -54,9 +54,9 @@ class AppRecorderImpl private constructor(
             preferencesProvider: PreferencesProvider,
             tasks: BackgroundQueue,
             processingTasks: BackgroundQueue
-        ): AppRecorderImpl =
+        ): AppAudioRecorderImpl =
             INSTANCE ?: synchronized(this) {
-                INSTANCE ?: AppRecorderImpl(
+                INSTANCE ?: AppAudioRecorderImpl(
                     audioRecorder = recorder,
                     context = context,
                     uiHandler = uiHandler,
